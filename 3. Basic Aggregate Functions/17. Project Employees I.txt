@@ -1,0 +1,118 @@
+1075. Project Employees I
+
+Table: Project
+
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| project_id  | int     |
+| employee_id | int     |
++-------------+---------+
+(project_id, employee_id) is the primary key of this table.
+employee_id is a foreign key to Employee table.
+Each row of this table indicates that the employee with employee_id is working on the project with project_id.
+ 
+
+Table: Employee
+
++------------------+---------+
+| Column Name      | Type    |
++------------------+---------+
+| employee_id      | int     |
+| name             | varchar |
+| experience_years | int     |
++------------------+---------+
+employee_id is the primary key of this table. It's guaranteed that experience_years is not NULL.
+Each row of this table contains information about one employee.
+ 
+
+Write an SQL query that reports the average experience years of all the employees for each project, rounded to 2 digits.
+
+Return the result table in any order.
+
+The query result format is in the following example.
+
+ 
+
+Example 1:
+
+Input: 
+Project table:
++-------------+-------------+
+| project_id  | employee_id |
++-------------+-------------+
+| 1           | 1           |
+| 1           | 2           |
+| 1           | 3           |
+| 2           | 1           |
+| 2           | 4           |
++-------------+-------------+
+Employee table:
++-------------+--------+------------------+
+| employee_id | name   | experience_years |
++-------------+--------+------------------+
+| 1           | Khaled | 3                |
+| 2           | Ali    | 2                |
+| 3           | John   | 1                |
+| 4           | Doe    | 2                |
++-------------+--------+------------------+
+Output: 
++-------------+---------------+
+| project_id  | average_years |
++-------------+---------------+
+| 1           | 2.00          |
+| 2           | 2.50          |
++-------------+---------------+
+Explanation: The average experience years for the first project is (3 + 2 + 1) / 3 = 2.00 and for the second project is (3 + 2) / 2 = 2.50
+
+# Write your MySQL query statement below
+SELECT p.project_id, ROUND(AVG(e.experience_years),2) AS average_years
+FROM Project p
+LEFT JOIN Employee e
+ON p.employee_id = e.employee_id
+GROUP BY p.project_id 
+
+% Breaking Down the SQL Query
+This query calculates the average experience (in years) of employees working on each project. It does so by joining two tables: Project (p) and Employee (e).
+
+1. SELECT p.project_id
+- Retrieves the project_id from the Project table (p).
+- Ensures the final output groups data by project.
+
+2. ROUND(AVG(e.experience_years),2) AS average_years
+- This calculates the average number of years of experience for employees working on a project.
+
+Breaking it down:
+- e.experience_years: This column represents the number of years an employee has worked.
+- AVG(e.experience_years): Computes the average experience years across all employees assigned to a project.
+- ROUND(..., 2): Rounds the computed average experience to 2 decimal places for better readability.
+- Alias (AS average_years): Renames the result column for clarity.
+
+3. FROM Project p
+- The query starts from the Project table (p).
+- This table likely contains a list of projects and their assigned employees.
+
+4. LEFT JOIN Employee e ON p.employee_id = e.employee_id
+- Joins the Project table (p) with the Employee table (e) based on employee_id.
+- Ensures all projects are included, even if no employees are assigned to them (LEFT JOIN).
+- If an employee is assigned to multiple projects, they will contribute their experience_years to multiple project groups.
+
+5. GROUP BY p.project_id
+- Groups the results by project (project_id).
+- Ensures that the AVG(e.experience_years) is calculated separately for each project.
+
+Query Execution Steps
+1. Join Project with Employee on employee_id.
+2. Group by project_id to calculate the average experience per project.
+3. Compute AVG(experience_years) for employees assigned to each project.
+4. Round the result to 2 decimal places.
+5. Include all projects, even if no employees are assigned (LEFT JOIN).
+
+Summary of Query Purpose
+✅ Calculates the average experience of employees assigned to each project.
+✅ Uses LEFT JOIN to ensure projects without employees are still included.
+✅ Groups by project_id to compute experience per project.
+✅ Rounds results to two decimal places for clarity.
+✅ Returns NULL for projects without employees, indicating missing data.
+
+This query is useful for assessing the experience level of employees working on different projects!

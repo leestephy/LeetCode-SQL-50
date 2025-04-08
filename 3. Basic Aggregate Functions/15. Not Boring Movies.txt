@@ -1,0 +1,85 @@
+620. Not Boring Movies
+
+Table: Cinema
+
++----------------+----------+
+| Column Name    | Type     |
++----------------+----------+
+| id             | int      |
+| movie          | varchar  |
+| description    | varchar  |
+| rating         | float    |
++----------------+----------+
+id is the primary key (column with unique values) for this table.
+Each row contains information about the name of a movie, its genre, and its rating.
+rating is a 2 decimal places float in the range [0, 10]
+ 
+
+Write a solution to report the movies with an odd-numbered ID and a description that is not "boring".
+
+Return the result table ordered by rating in descending order.
+
+The result format is in the following example.
+
+
+
+Example 1:
+
+Input: 
+Cinema table:
++----+------------+-------------+--------+
+| id | movie      | description | rating |
++----+------------+-------------+--------+
+| 1  | War        | great 3D    | 8.9    |
+| 2  | Science    | fiction     | 8.5    |
+| 3  | irish      | boring      | 6.2    |
+| 4  | Ice song   | Fantacy     | 8.6    |
+| 5  | House card | Interesting | 9.1    |
++----+------------+-------------+--------+
+Output: 
++----+------------+-------------+--------+
+| id | movie      | description | rating |
++----+------------+-------------+--------+
+| 5  | House card | Interesting | 9.1    |
+| 1  | War        | great 3D    | 8.9    |
++----+------------+-------------+--------+
+Explanation: 
+We have three movies with odd-numbered IDs: 1, 3, and 5. The movie with ID = 3 is boring so we do not include it in the answer.
+
+# Write your MySQL query statement below
+SELECT * FROM Cinema
+WHERE id % 2 <> 0 AND description != "boring"
+ORDER BY rating DESC
+
+% Breaking Down the SQL Query
+This SQL query retrieves specific records from the Cinema table by applying filtering conditions and sorting them based on ratings.
+
+1. SELECT * FROM Cinema
+- SELECT * retrieves all columns from the Cinema table.
+
+2. WHERE id % 2 <> 0 (Filtering Odd-Numbered IDs)
+- This condition filters only rows where id is an odd number.
+- The modulus operator (%) calculates the remainder when id is divided by 2.
+	If id % 2 = 0, the ID is even.
+	If id % 2 ≠ 0, the ID is odd.
+- This ensures that only movies with odd id values are selected.
+
+3. AND description != "boring" (Filtering Out "Boring" Movies)
+- This excludes movies where the description column contains "boring".
+- The != operator ensures that only records where description is not equal to "boring" are included.
+
+4. ORDER BY rating DESC (Sorting by Rating in Descending Order)
+- Sorts the results by rating, from highest to lowest (DESC = descending).
+- Ensures that the highest-rated movies appear at the top.
+
+Query Execution Steps
+1. Filter out even-numbered IDs (remove IDs 2 and 4).
+2. Exclude rows where description = "boring" (remove id = 1).
+3. Sort the remaining rows by rating in descending order.
+
+Summary of Query Purpose
+✅ Filters only odd-numbered IDs.
+✅ Excludes movies described as "boring".
+✅ Sorts the remaining movies by rating in descending order.
+
+This query is useful for selecting and prioritizing high-rated, non-boring movies with odd-numbered IDs. 

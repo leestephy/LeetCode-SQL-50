@@ -1,0 +1,87 @@
+1978. Employees Whose Manager Left the Company
+
+Table: Employees
+
++-------------+----------+
+| Column Name | Type     |
++-------------+----------+
+| employee_id | int      |
+| name        | varchar  |
+| manager_id  | int      |
+| salary      | int      |
++-------------+----------+
+In SQL, employee_id is the primary key for this table.
+This table contains information about the employees, their salary, and the ID of their manager. Some employees do not have a manager (manager_id is null). 
+ 
+
+Find the IDs of the employees whose salary is strictly less than $30000 and whose manager left the company. When a manager leaves the company, their information is deleted from the Employees table, but the reports still have their manager_id set to the manager that left.
+
+Return the result table ordered by employee_id.
+
+The result format is in the following example.
+
+ 
+
+Example 1:
+
+Input:  
+Employees table:
++-------------+-----------+------------+--------+
+| employee_id | name      | manager_id | salary |
++-------------+-----------+------------+--------+
+| 3           | Mila      | 9          | 60301  |
+| 12          | Antonella | null       | 31000  |
+| 13          | Emery     | null       | 67084  |
+| 1           | Kalel     | 11         | 21241  |
+| 9           | Mikaela   | null       | 50937  |
+| 11          | Joziah    | 6          | 28485  |
++-------------+-----------+------------+--------+
+Output: 
++-------------+
+| employee_id |
++-------------+
+| 11          |
++-------------+
+
+Explanation: 
+The employees with a salary less than $30000 are 1 (Kalel) and 11 (Joziah).
+Kalel's manager is employee 11, who is still in the company (Joziah).
+Joziah's manager is employee 6, who left the company because there is no row for employee 6 as it was deleted.
+
+# Write your MySQL query statement below
+SELECT employee_id
+FROM Employees a
+WHERE salary < 30000 
+      AND manager_id IS NOT NULL
+      AND NOT EXISTS (SELECT 1 
+                      FROM Employees b
+                      WHERE b.employee_id = a.manager_id)
+ORDER BY employee_id;
+
+-- Query Breakdown:
+1. FROM Employees a
+• This selects from the Employees table and gives it an alias a. So, a refers to each row (employee) in the Employees table.
+
+2. WHERE salary < 30000
+• This condition filters employees whose salary is less than 30,000.
+
+3. AND manager_id IS NOT NULL
+• This ensures that the employees selected have a manager (i.e., their manager_id is not null).
+
+4. AND NOT EXISTS (SELECT 1 FROM Employees b WHERE b.employee_id = a.manager_id)
+This is a correlated subquery that checks if the employee’s manager (identified by a.manager_id) is not an existing employee. Specifically:
+• SELECT 1 is used because we don’t actually need to return any specific column values—just checking for existence.
+• Using SELECT 1 is slightly more efficient than SELECT *, as it makes it clear that we only care about existence, not the data itself. 
+• The subquery selects from the Employees table (alias b) and checks if there is any employee (b.employee_id) whose employee_id matches the manager_id of the employee in the outer query (a.manager_id).
+• The NOT EXISTS clause returns true if the subquery does not return any rows, meaning that the employee's manager is not an existing employee in the Employees table.
+• In other words, this condition filters out employees whose manager is not a valid employee (i.e., no record for a.manager_id exists in the table).
+
+5. ORDER BY employee_id
+• This sorts the resulting employee list by their employee_id in ascending order.
+
+Purpose of the Query:
+The query selects the employee_id of employees who meet all of the following conditions:
+
+• Their salary is less than 30,000.
+• They have a manager (their manager_id is not null).
+• Their manager does not exist as an employee in the Employees table (i.e., they have a manager who is not a valid employee).

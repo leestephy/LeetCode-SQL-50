@@ -1,0 +1,107 @@
+610. Triangle Judgement
+
+Table: Triangle
+
++-------------+------+
+| Column Name | Type |
++-------------+------+
+| x           | int  |
+| y           | int  |
+| z           | int  |
++-------------+------+
+In SQL, (x, y, z) is the primary key column for this table.
+Each row of this table contains the lengths of three line segments.
+ 
+
+Report for every three line segments whether they can form a triangle.
+
+Return the result table in any order.
+
+The result format is in the following example.
+
+ 
+
+Example 1:
+
+Input: 
+Triangle table:
++----+----+----+
+| x  | y  | z  |
++----+----+----+
+| 13 | 15 | 30 |
+| 10 | 20 | 15 |
++----+----+----+
+Output: 
++----+----+----+----------+
+| x  | y  | z  | triangle |
++----+----+----+----------+
+| 13 | 15 | 30 | No       |
+| 10 | 20 | 15 | Yes      |
++----+----+----+----------+
+
+# Write your MySQL query statement below
+SELECT *, IF(x + y > z AND x + z > y AND y + z > x, 'Yes', 'No') AS triangle 
+FROM Triangle
+
+% Breaking down the MySQL query statement
+Step 1: Understanding the Triangle Table
+This query is selecting data from a table called Triangle, which contains three columns:
+x
+y
+z
+- Each row represents three values that may or may not form a valid triangle.
+
+Step 2: Selecting All Columns with SELECT *
+SELECT * 
+
+- This part selects all columns (x, y, z, etc.) from the Triangle table.
+
+Step 3: Applying the IF() Condition
+IF(x + y > z AND x + z > y AND y + z > x, 'Yes', 'No') AS triangle
+
+- IF(condition, 'Yes', 'No') is a MySQL conditional function that evaluates a boolean expression:
+	If the condition is TRUE, it returns 'Yes'
+	If the condition is FALSE, it returns 'No'
+
+Step 4: Understanding the Triangle Inequality Theorem
+The condition inside IF() checks if three given sides (x, y, z) form a valid triangle using the Triangle Inequality Theorem, which states:
+
+A set of three sides forms a valid triangle if and only if the sum of any two sides is greater than the third side:
+x + y > z
+x + z > y
+y + z > x
+
+- If all three conditions are met, the query returns 'Yes' (meaning the values form a valid triangle).
+- Otherwise, it returns 'No'.
+
+Step 5: Final Output
+The result set includes:
+- All original columns from the Triangle table (x, y, z).
+- A new column (triangle) that shows 'Yes' if the three sides form a valid triangle, or 'No' otherwise.
+
+Summary
+1. Extracts all columns from the Triangle table.
+2. Checks if each row satisfies the Triangle Inequality Theorem:
+	If valid, marks as Yes.
+	Otherwise, marks as No.
+3. Returns a new column triangle to indicate if the sides form a valid triangle.
+- This query is useful for validating triangle data and can be extended for classification (e.g., equilateral, isosceles, scalene). 
+
+% Extended SQL Query for Triangle Classification
+SELECT *, 
+       IF(x + y > z AND x + z > y AND y + z > x, 'Yes', 'No') AS is_valid_triangle,
+       CASE 
+           WHEN x = y AND y = z THEN 'Equilateral'
+           WHEN x = y OR y = z OR x = z THEN 'Isosceles'
+           ELSE 'Scalene'
+       END AS triangle_type,
+       IF(x*x + y*y = z*z OR x*x + z*z = y*y OR y*y + z*z = x*x, 'Yes', 'No') AS is_right_triangle
+FROM Triangle;
+
+Classification of Triangles
+1. Valid Triangle Condition – Check if it satisfies the Triangle Inequality Theorem.
+2. Types of Triangles by Side Lengths:
+	Equilateral Triangle: All three sides are equal → x = y AND y = z
+	Isosceles Triangle: Exactly two sides are equal → (x = y OR y = z OR x = z)
+	Scalene Triangle: All three sides are different → x ≠ y AND y ≠ z AND x ≠ z
+3. Right Triangle Check (Pythagorean Theorem) – If it satisfies a² + b² = c² for any side, it's a right triangle.

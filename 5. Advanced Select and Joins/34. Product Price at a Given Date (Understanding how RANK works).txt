@@ -1,0 +1,106 @@
+### **Breaking Down the Line:**
+```sql
+RANK() OVER(PARTITION BY product_id ORDER BY change_date DESC) AS r
+```
+This line is part of a **window function** that assigns a **rank** (`r`) to rows **within each `product_id` group**, based on the **latest (`change_date DESC`) price change**.
+
+---
+
+## **1. Understanding `RANK()`**
+`RANK()` is a **window function** that assigns a **ranking number** to rows **within a partition (group)** based on the given `ORDER BY` condition.
+
+- **If two or more rows have the same `ORDER BY` value**, they get the **same rank**.
+- **The next rank is skipped** (i.e., it does not assign consecutive numbers).
+
+### **Example of `RANK()` Behavior**
+| product_id | new_price | change_date | Rank (r) |
+|------------|----------|------------|---------|
+| 1          | 100      | 2019-08-10 | 1       |
+| 1          | 90       | 2019-07-01 | 2       |
+| 2          | 200      | 2019-08-15 | 1       |
+| 2          | 195      | 2019-08-15 | 1       |
+| 2          | 180      | 2019-08-05 | 3       |
+
+**Why does product `2` have two rows ranked `1`?**
+- Because `change_date = 2019-08-15` appears **twice**, and `RANK()` assigns **the same rank**.
+- The next rank **skips `2`** and assigns `3` to the next record.
+
+---
+
+## **2. `OVER(...)`: Applying the Window Function**
+```sql
+OVER(PARTITION BY product_id ORDER BY change_date DESC)
+```
+### **How it Works:**
+- **`PARTITION BY product_id`**  
+  - **Divides the data into separate groups for each `product_id`**.
+  - Each `product_id` is treated as a separate dataset.
+
+- **`ORDER BY change_date DESC`**  
+  - **Sorts each `product_id`'s rows by `change_date` in descending order** (latest date first).
+  - Ensures the most recent price change gets **rank `1`**.
+
+### **Example: How `PARTITION BY` and `ORDER BY` Work Together**
+Consider this `Products` table:
+
+| product_id | new_price | change_date |
+|------------|----------|------------|
+| 1          | 100      | 2019-08-10 |
+| 1          | 90       | 2019-07-01 |
+| 2          | 200      | 2019-08-15 |
+| 2          | 195      | 2019-08-15 |
+| 2          | 180      | 2019-08-05 |
+| 3          | 300      | 2019-09-01 |
+
+After applying `RANK() OVER(PARTITION BY product_id ORDER BY change_date DESC) AS r`, we get:
+
+| product_id | new_price | change_date | Rank (r) |
+|------------|----------|------------|---------|
+| 1          | 100      | 2019-08-10 | 1       |
+| 1          | 90       | 2019-07-01 | 2       |
+| 2          | 200      | 2019-08-15 | 1       |
+| 2          | 195      | 2019-08-15 | 1       |
+| 2          | 180      | 2019-08-05 | 3       |
+| 3          | 300      | 2019-09-01 | 1       |
+
+✅ **Key Observations:**
+- Each **`product_id`** has its **own ranking sequence**.
+- `RANK()` assigns **the same rank to duplicate dates** (`2` got two `1`s).
+- The next rank **skips a number** (jumps from `1` → `3` for product `2`).
+
+---
+
+## **3. Why Is This Used?**
+This ranking technique is **useful** for:
+✅ **Finding the most recent price per product** (`r = 1`).  
+✅ **Handling ties (same `change_date`)** where multiple records might have the same ranking.  
+✅ **Allowing further filtering in the outer query** (`WHERE r = 1`).  
+
+---
+
+## **4. Alternative: Using `ROW_NUMBER()` Instead**
+If we always want a **single row per product**, we could use `ROW_NUMBER()` instead:
+
+```sql
+ROW_NUMBER() OVER(PARTITION BY product_id ORDER BY change_date DESC) AS r
+```
+
+### **Difference Between `RANK()` and `ROW_NUMBER()`**
+| Function    | Handles Ties? | Skips Numbers? | Use Case |
+|------------|--------------|---------------|-----------|
+| **RANK()**        | Yes (assigns same rank) | Yes (jumps in ranking) | If ties should be **ranked the same** |
+| **ROW_NUMBER()**  | No (assigns unique ranks) | No (consecutive numbers) | If only **one row per product** is needed |
+
+✅ If **only one latest record per product** is needed, `ROW_NUMBER()` might be **better** than `RANK()`.
+
+---
+
+## **Final Summary**
+```sql
+RANK() OVER(PARTITION BY product_id ORDER BY change_date DESC) AS r
+```
+✔ **Ranks price changes per `product_id`, from newest (`r = 1`) to oldest.**  
+✔ **Handles duplicate `change_date`s by assigning the same rank, skipping numbers when ties occur.**  
+✔ **Helps in selecting the most recent price before a given date (`r = 1`).**  
+
+Would you like further clarifications or alternative approaches? 🚀😊

@@ -1,0 +1,78 @@
+### **Breaking Down the CTE (`RunningTotal`) in the Optimized Query**
+```sql
+WITH RunningTotal AS (
+    SELECT 
+        person_name,
+        turn,
+        SUM(weight) OVER (ORDER BY turn ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumulative_weight
+    FROM Queue
+)
+SELECT person_name
+FROM RunningTotal
+WHERE cumulative_weight <= 1000
+ORDER BY turn DESC
+LIMIT 1;
+```
+
+### **Step-by-Step Breakdown**
+#### **1. Common Table Expression (CTE) Definition**
+- The **CTE** (`RunningTotal`) acts as a temporary table to **calculate the cumulative sum of weights**.
+
+```sql
+WITH RunningTotal AS (
+    ...
+)
+```
+- It helps break the query into logical steps, making it more readable and efficient.
+
+#### **2. Computing Cumulative Sum Using `SUM() OVER()`**
+```sql
+SUM(weight) OVER (ORDER BY turn ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumulative_weight
+```
+- `SUM(weight) OVER (...)` is a **window function** that **computes the running total**.
+- **`ORDER BY turn`** ensures that weights are summed in increasing `turn` order.
+- **`ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`** means:
+  - Start summing from the **first row (earliest turn) until the current row**.
+  - This ensures the cumulative sum includes all previous rows.
+
+#### **3. CTE Output Example**
+| person_name | turn | weight | cumulative_weight |
+|-------------|------|--------|------------------|
+| Alice       | 1    | 300    | 300              |
+| Bob         | 2    | 400    | 700              |
+| Charlie     | 3    | 500    | 1200             |
+| David       | 4    | 200    | 1400             |
+
+- The **cumulative_weight** increases as we move down.
+- If **Charlie’s row exceeds 1000**, it will be filtered out in the next step.
+
+#### **4. Filtering Valid Entries (`WHERE cumulative_weight <= 1000`)**
+```sql
+WHERE cumulative_weight <= 1000
+```
+- This removes rows where the cumulative sum **exceeds** 1000.
+- From the table above, **Charlie and David are excluded** since `Charlie’s cumulative_weight` exceeds 1000.
+
+#### **5. Selecting the Last Eligible Person (`ORDER BY turn DESC LIMIT 1`)**
+```sql
+ORDER BY turn DESC
+LIMIT 1;
+```
+- Sorts remaining rows by **latest turn**.
+- **Selects the person with the highest valid turn**.
+
+#### **Final Output Example**
+| person_name | turn | cumulative_weight |
+|-------------|------|------------------|
+| Bob         | 2    | 700              |
+
+✅ **Final result: `Bob` is returned because he has the highest valid turn where cumulative weight ≤ 1000.**
+
+---
+
+### **Why This Approach is Better?**
+✔ **Avoids Self-Join**, reducing complexity from **O(n²) to O(n)**.  
+✔ **Uses a Window Function (`SUM() OVER()`)**, which is **more efficient than GROUP BY with SUM**.  
+✔ **CTE improves readability** and makes it easy to debug or extend the query.
+
+🚀 **Key Takeaway:** Use **window functions** to efficiently compute cumulative sums instead of self-joins.

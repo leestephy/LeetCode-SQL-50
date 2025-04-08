@@ -1,0 +1,105 @@
+550. Game Play Analysis IV
+
+Table: Activity
+
++--------------+---------+
+| Column Name  | Type    |
++--------------+---------+
+| player_id    | int     |
+| device_id    | int     |
+| event_date   | date    |
+| games_played | int     |
++--------------+---------+
+(player_id, event_date) is the primary key (combination of columns with unique values) of this table.
+This table shows the activity of players of some games.
+Each row is a record of a player who logged in and played a number of games (possibly 0) before logging out on someday using some device.
+ 
+
+Write a solution to report the fraction of players that logged in again on the day after the day they first logged in, rounded to 2 decimal places. 
+In other words, you need to count the number of players that logged in for at least two consecutive days starting from their first login date, 
+then divide that number by the total number of players.
+
+The result format is in the following example.
+
+ 
+
+Example 1:
+
+Input: 
+Activity table:
++-----------+-----------+------------+--------------+
+| player_id | device_id | event_date | games_played |
++-----------+-----------+------------+--------------+
+| 1         | 2         | 2016-03-01 | 5            |
+| 1         | 2         | 2016-03-02 | 6            |
+| 2         | 3         | 2017-06-25 | 1            |
+| 3         | 1         | 2016-03-02 | 0            |
+| 3         | 4         | 2018-07-03 | 5            |
++-----------+-----------+------------+--------------+
+Output: 
++-----------+
+| fraction  |
++-----------+
+| 0.33      |
++-----------+
+Explanation: 
+Only the player with id 1 logged back in after the first day he had logged in so the answer is 1/3 = 0.33
+
+# Write your MySQL query statement below
+SELECT ROUND(SUM(login) / COUNT(DISTINCT player_id),2) AS fraction
+FROM (SELECT player_id,
+	     DATEDIFF(event_date, min(event_date) OVER (PARTITION BY player_id))=1 AS login
+      FROM Activity) AS t
+
+% Breaking down the SQL query
+Step 1: Understanding the Inner Query 
+
+SELECT player_id,
+       DATEDIFF(event_date, min(event_date) OVER (PARTITION BY player_id))=1 AS login
+FROM Activity
+
+This inner query creates a temporary table (t) that calculates whether each player_id logged in exactly one day after their first login.
+
+SELECT player_id, ...
+
+- Selects the player_id column, ensuring we analyze each player’s activity.
+
+MIN(event_date) OVER (PARTITION BY player_id)
+- This window function computes the earliest event date (MIN(event_date)) for each player_id, without grouping the data.
+- The PARTITION BY player_id ensures that the first login date is computed separately for each player.
+
+DATEDIFF(event_date, MIN(event_date) OVER (PARTITION BY player_id)) = 1 AS login
+- DATEDIFF(event_date, first_login_date) calculates the difference in days between the current login date (event_date) and the player's first login date (MIN(event_date)).
+- If this difference equals 1, it means the player logged in exactly on the second day, so we assign login = 1, otherwise, it is 0.
+
+Step 2: Understanding the Outer Query
+
+SELECT ROUND(SUM(login) / COUNT(DISTINCT player_id),2) AS fraction
+FROM (SELECT player_id,
+	     DATEDIFF(event_date, min(event_date) OVER (PARTITION BY player_id))=1 AS login
+      FROM Activity) AS t
+
+SUM(login)
+- Adds up all the login values.
+- Since login = 1 for players who logged in on the second day and 0 otherwise, this counts how many players logged in on the second day.
+
+COUNT(DISTINCT player_id)
+- Counts the total number of unique players.
+- This ensures we divide by the number of players, not the number of login attempts.
+
+SUM(login) / COUNT(DISTINCT player_id)
+- Computes the fraction of players who logged in exactly one day after their first login.
+
+ROUND(..., 2)
+-Rounds the final result to two decimal places.
+
+% Final Summary
+Inner Query:
+- Identifies each player's first login date.
+- Checks if the player logged in exactly one day after their first login (login = 1 if true, 0 otherwise).
+
+Outer Query:
+- Calculates the percentage of players whose second login was exactly one day after their first login.
+- Uses SUM(login) to count successful second-day logins.
+- Uses COUNT(DISTINCT player_id) to count total unique players.
+- Rounds the result to two decimal places.
